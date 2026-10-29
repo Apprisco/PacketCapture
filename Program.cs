@@ -106,6 +106,8 @@ public static class Program
         Console.WriteLine("Recording stopped.");
         Console.WriteLine("Saving the recording...");
         PacketMonitor.Convert(etl, pcap);
+        try { if (LoginStripper.Strip(pcap, Profile) is var n and > 0) Console.WriteLine($"Removed your login ticket from {n} connection{(n == 1 ? "" : "s")}."); }
+        catch (IOException e) { Console.WriteLine($"Couldn't remove the login ticket here ({e.Message}). The server removes it when the upload arrives."); }
 
         var done = new List<string>();
         if (steps.Count > 0)
