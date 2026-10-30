@@ -65,11 +65,15 @@ internal static class LinkStripper
         {
             int et = 12;
             while (et + 2 <= cap && Be16(b, 28 + et) == 0x8100) et += 4;
-            if (et + 2 > cap || Be16(b, 28 + et) is not (0x0800 or 0x86DD)) return;
+            if (et + 2 > cap || Be16(b, 28 + et) != 0x0800) return;
             ip = et + 2;
         }
-        else if (links[iface] is not (101 or 228 or 229)) return;
-        int n = cap - ip;
+        else if (links[iface] is not (101 or 228)) return;
+        int at = 28 + ip, n = cap - ip;
+        if (n < 20 || b[at] >> 4 != 4 || b[at + 9] != 6 || (Be16(b, at + 6) & 0x3FFF) != 0) return;
+        int total = Be16(b, at + 2);
+        if (total < 20 || total > n) return;
+        n = total;
         var body = new byte[20 + ((n + 3) & ~3)];
         Array.Copy(b, 8, body, 0, 12);
         Array.Copy(BitConverter.GetBytes(n), 0, body, 12, 4);
