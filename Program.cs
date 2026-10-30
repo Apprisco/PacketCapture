@@ -108,6 +108,7 @@ public static class Program
         PacketMonitor.Convert(etl, pcap);
         try { if (LoginStripper.Strip(pcap, Profile) is var n and > 0) Console.WriteLine($"Removed your login ticket from {n} connection{(n == 1 ? "" : "s")}."); }
         catch (IOException e) { Console.WriteLine($"Couldn't remove the login ticket here ({e.Message}). The server removes it when the upload arrives."); }
+        LinkStripper.Strip(pcap);
 
         var done = new List<string>();
         if (steps.Count > 0)

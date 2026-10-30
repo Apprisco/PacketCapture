@@ -16,6 +16,7 @@ PacketCapture needs administrator permission to run because Windows requires it 
 We want to be clear about what PacketCapture collects and what happens to your recordings.
 
 - **When you open PacketCapture**, it checks the submission server for the latest capture settings and app version. These settings include the game's server addresses, ports, process names, recording checklists, and interface text. These requests don't send any information about you or your PC.
+- **Recordings keep only the game's traffic.** Before a recording is saved, PacketCapture removes your login ticket, your network hardware addresses and the details of your PC.
 - **Uploads are optional.** PacketCapture only uploads recordings after you've linked your Discord account, and you choose which recordings to submit.
 
 ## Building

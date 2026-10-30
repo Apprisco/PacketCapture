@@ -28,6 +28,7 @@ internal static class LoginStripper
     private static Dictionary<(uint, int, uint, int), List<Packet>> Read(string pcap, CaptureProfile profile)
     {
         var flows = new Dictionary<(uint, int, uint, int), List<Packet>>();
+        var heads = new Dictionary<(uint, int, uint, int), HashSet<uint>>();
         var links = new List<int>();
         using var file = new FileStream(pcap, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 20);
         var b = new byte[65536];
@@ -44,13 +45,13 @@ internal static class LoginStripper
                 links.Clear();
             }
             else if (type == 1) links.Add(BitConverter.ToUInt16(b, 8));
-            else if (type == 6 && length >= 32) Parse(b, length, at, links, profile, flows);
+            else if (type == 6 && length >= 32) Parse(b, length, at, links, profile, flows, heads);
             at += length;
         }
         return flows;
     }
 
-    private static void Parse(byte[] b, int length, long at, List<int> links, CaptureProfile profile, Dictionary<(uint, int, uint, int), List<Packet>> flows)
+    private static void Parse(byte[] b, int length, long at, List<int> links, CaptureProfile profile, Dictionary<(uint, int, uint, int), List<Packet>> flows, Dictionary<(uint, int, uint, int), HashSet<uint>> heads)
     {
         int iface = (int)BitConverter.ToUInt32(b, 8), cap = (int)BitConverter.ToUInt32(b, 20);
         if (iface >= links.Count || cap < 0 || 28 + cap > length - 4) return;
@@ -75,8 +76,9 @@ internal static class LoginStripper
         if (n == 0 && !syn) return;
         var key = (Be32(b, ip + 12), sport, Be32(b, ip + 16), dport);
         if (!flows.TryGetValue(key, out var list)) flows[key] = list = [];
+        if (!heads.TryGetValue(key, out var seen)) heads[key] = seen = [];
         byte[]? data = null;
-        if (n > 0 && list.Count < HeadPackets)
+        if (n > 0 && seen.Count < HeadPackets && seen.Add(Be32(b, tcp + 4)))
         {
             data = new byte[n];
             Array.Copy(b, payload, data, 0, n);
